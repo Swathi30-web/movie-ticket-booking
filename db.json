@@ -130,6 +130,16 @@
       "ticketPrice": 180,
       "availableSeats": 100,
       "id": "E9iZbadoX-w"
+    },
+    {
+      "movieId": "3",
+      "theatreId": "2",
+      "screen": "screen1",
+      "date": "2026-09-04",
+      "showTime": "16:57",
+      "ticketPrice": 120,
+      "availableSeats": 200,
+      "id": "kxphHHNjhEU"
     }
   ],
   "bookings": [
@@ -167,20 +177,20 @@
       "id": "4iZjemR-JKY"
     },
     {
-      "customerName": "rajii",
+      "customerName": "sudar",
       "email": "swathisudar623@gmail.com",
-      "phone": "6379779262",
-      "movieId": "1",
-      "theatreId": "1",
-      "date": "2026-09-05",
-      "showTime": "10:00 AM",
+      "phone": "6365784930",
+      "movieId": "3",
+      "theatreId": "2",
+      "date": "2026-09-04",
+      "showTime": "16:57",
       "seats": [
-        "H5"
+        "A2"
       ],
       "numberOfTickets": 1,
-      "totalAmount": 180,
+      "totalAmount": 120,
       "bookingStatus": "Confirmed",
-      "id": "nanrdgIxiIs"
+      "id": "AthczXZ-0GI"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
