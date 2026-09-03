@@ -31,10 +31,15 @@ interface BookingForm {
 }
 
 const BookingPage = () => {
-  const { showId } = useParams();
+  const { showId } = useParams<{
+    showId: string;
+  }>();
+
   const navigate = useNavigate();
+
   const location = useLocation();
 
+  // Seats received from Seat Selection page
   const locationState =
     location.state as LocationState | null;
 
@@ -52,9 +57,6 @@ const BookingPage = () => {
       locationState?.selectedSeats || []
     );
 
-  const [bookedSeats, setBookedSeats] =
-    useState<string[]>([]);
-
   const [form, setForm] =
     useState<BookingForm>({
       customerName: "",
@@ -71,9 +73,9 @@ const BookingPage = () => {
   const [error, setError] =
     useState("");
 
-  /* =========================
-     LOAD SHOW + MOVIE + THEATRE
-     ========================= */
+  // ============================
+  // LOAD BOOKING DATA
+  // ============================
 
   useEffect(() => {
     const loadData = async () => {
@@ -105,15 +107,15 @@ const BookingPage = () => {
 
         setMovie(movieData);
 
-        // Get theatre
+        // Get theatres
         const theatreResponse =
           await getTheatres();
 
-        const theatreData: Theatre[] =
+        const theatreList: Theatre[] =
           theatreResponse.data;
 
         const foundTheatre =
-          theatreData.find(
+          theatreList.find(
             (item) =>
               item.id ===
               showData.theatreId
@@ -126,44 +128,9 @@ const BookingPage = () => {
 
         setTheatre(foundTheatre);
 
-        // Get bookings
-        const bookingsResponse =
-          await getBookings();
-
-        const bookings: Booking[] =
-          bookingsResponse.data;
-
-        /*
-          Find already booked seats
-          for the same movie,
-          theatre, date and show time.
-        */
-
-        const alreadyBookedSeats =
-          bookings
-            .filter(
-              (booking) =>
-                booking.movieId ===
-                  showData.movieId &&
-                booking.theatreId ===
-                  showData.theatreId &&
-                booking.date ===
-                  showData.date &&
-                booking.showTime ===
-                  showData.showTime &&
-                booking.bookingStatus ===
-                  "Confirmed"
-            )
-            .flatMap(
-              (booking) =>
-                booking.seats
-            );
-
-        setBookedSeats(
-          alreadyBookedSeats
-        );
       } catch (error) {
         console.error(error);
+
         setError(
           "Failed to load booking details"
         );
@@ -175,9 +142,9 @@ const BookingPage = () => {
     loadData();
   }, [showId]);
 
-  /* =========================
-     FORM CHANGE
-     ========================= */
+  // ============================
+  // FORM CHANGE
+  // ============================
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -190,9 +157,9 @@ const BookingPage = () => {
     }));
   };
 
-  /* =========================
-     VALIDATE FORM
-     ========================= */
+  // ============================
+  // FORM VALIDATION
+  // ============================
 
   const validateForm = () => {
     const name =
@@ -205,7 +172,9 @@ const BookingPage = () => {
       form.phone.trim();
 
     if (!name) {
-      alert("Please enter customer name");
+      alert(
+        "Please enter customer name"
+      );
       return false;
     }
 
@@ -218,12 +187,16 @@ const BookingPage = () => {
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
-      alert("Please enter a valid email");
+      alert(
+        "Please enter a valid email"
+      );
       return false;
     }
 
     if (!phone) {
-      alert("Please enter phone number");
+      alert(
+        "Please enter phone number"
+      );
       return false;
     }
 
@@ -238,24 +211,26 @@ const BookingPage = () => {
     }
 
     if (selectedSeats.length === 0) {
-      alert("Please select at least one seat");
+      alert(
+        "Please select at least one seat"
+      );
       return false;
     }
 
     return true;
   };
 
-  /* =========================
-     TOTAL AMOUNT
-     ========================= */
+  // ============================
+  // TOTAL AMOUNT
+  // ============================
 
   const totalAmount =
     selectedSeats.length *
-    (show?.ticketPrice || 0);
+    (show?.ticketPrice ?? 0);
 
-  /* =========================
-     CONFIRM BOOKING
-     ========================= */
+  // ============================
+  // CONFIRM BOOKING
+  // ============================
 
   const handleBooking = async () => {
     if (!show || !movie || !theatre) {
@@ -269,14 +244,13 @@ const BookingPage = () => {
       return;
     }
 
-    /*
-      Check again before booking
-      in case another booking
-      happened meanwhile.
-    */
-
     try {
       setBookingLoading(true);
+
+      /*
+        Check latest bookings before
+        confirming the booking.
+      */
 
       const bookingsResponse =
         await getBookings();
@@ -288,10 +262,12 @@ const BookingPage = () => {
         latestBookings
           .filter(
             (booking) =>
-              booking.movieId === movie.id &&
+              booking.movieId ===
+                movie.id &&
               booking.theatreId ===
                 theatre.id &&
-              booking.date === show.date &&
+              booking.date ===
+                show.date &&
               booking.showTime ===
                 show.showTime &&
               booking.bookingStatus ===
@@ -301,6 +277,9 @@ const BookingPage = () => {
             (booking) =>
               booking.seats
           );
+
+      // Check if selected seats
+      // are already booked
 
       const seatAlreadyBooked =
         selectedSeats.some((seat) =>
@@ -312,9 +291,10 @@ const BookingPage = () => {
           "One or more selected seats are already booked. Please choose different seats."
         );
 
-        setBookedSeats(
-          latestBookedSeats
-        );
+        /*
+          Remove seats that are already
+          booked from current selection.
+        */
 
         setSelectedSeats((prev) =>
           prev.filter(
@@ -327,6 +307,10 @@ const BookingPage = () => {
 
         return;
       }
+
+      // ============================
+      // BOOKING OBJECT
+      // ============================
 
       const bookingData = {
         customerName:
@@ -357,21 +341,20 @@ const BookingPage = () => {
           "Confirmed" as const,
       };
 
+      // POST booking
+
       await addBooking(bookingData);
 
       alert(
         "🎉 Ticket booked successfully!"
       );
 
-      /*
-        IMPORTANT:
-        After successful booking,
-        go to Booking History.
-      */
+      // Go to booking history
 
       navigate("/bookings", {
         replace: true,
       });
+
     } catch (error) {
       console.error(error);
 
@@ -383,9 +366,9 @@ const BookingPage = () => {
     }
   };
 
-  /* =========================
-     LOADING
-     ========================= */
+  // ============================
+  // LOADING
+  // ============================
 
   if (loading) {
     return (
@@ -403,9 +386,9 @@ const BookingPage = () => {
     );
   }
 
-  /* =========================
-     ERROR
-     ========================= */
+  // ============================
+  // ERROR
+  // ============================
 
   if (error) {
     return (
@@ -416,6 +399,7 @@ const BookingPage = () => {
         </p>
 
         <button
+          type="button"
           onClick={() =>
             navigate("/shows")
           }
@@ -428,28 +412,33 @@ const BookingPage = () => {
     );
   }
 
+  // ============================
+  // SAFETY CHECK
+  // ============================
+
   if (!show || !movie || !theatre) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <p className="text-gray-600">
           Booking details not available
         </p>
       </div>
     );
   }
 
-  /* =========================
-     UI
-     ========================= */
+  // ============================
+  // UI
+  // ============================
 
   return (
     <div className="min-h-screen bg-gray-100">
 
       <div className="max-w-6xl mx-auto p-6">
 
-        {/* Back */}
+        {/* Back button */}
 
         <button
+          type="button"
           onClick={() =>
             navigate(
               `/shows/${show.id}/seats`
@@ -476,13 +465,13 @@ const BookingPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-          {/* =====================
+          {/* ============================
               LEFT SIDE
-              ===================== */}
+              ============================ */}
 
           <div className="space-y-6">
 
-            {/* Movie / Show Details */}
+            {/* Movie Details */}
 
             <div className="bg-white rounded-2xl shadow p-6">
 
@@ -568,9 +557,9 @@ const BookingPage = () => {
 
           </div>
 
-          {/* =====================
+          {/* ============================
               RIGHT SIDE
-              ===================== */}
+              ============================ */}
 
           <div className="bg-white rounded-2xl shadow p-6 h-fit">
 
@@ -596,7 +585,9 @@ const BookingPage = () => {
                 value={
                   form.customerName
                 }
-                onChange={handleChange}
+                onChange={
+                  handleChange
+                }
                 placeholder="Enter customer name"
                 className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-slate-500"
               />
@@ -619,7 +610,9 @@ const BookingPage = () => {
                 name="email"
                 type="email"
                 value={form.email}
-                onChange={handleChange}
+                onChange={
+                  handleChange
+                }
                 placeholder="Enter email"
                 className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-slate-500"
               />
@@ -649,21 +642,25 @@ const BookingPage = () => {
                       ""
                     );
 
-                  if (value.length <= 10) {
+                  if (
+                    value.length <= 10
+                  ) {
                     setForm((prev) => ({
                       ...prev,
                       phone: value,
                     }));
                   }
                 }}
-                placeholder="10 digit phone number"
                 maxLength={10}
+                placeholder="10 digit phone number"
                 className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-slate-500"
               />
 
             </div>
 
-            {/* Booking Summary */}
+            {/* ============================
+                BOOKING SUMMARY
+                ============================ */}
 
             <div className="border-t pt-6">
 
@@ -673,32 +670,27 @@ const BookingPage = () => {
 
               <div className="space-y-3">
 
-                <div className="flex justify-between">
-
+                <div className="flex justify-between gap-4">
                   <span className="text-gray-500">
                     Movie
                   </span>
 
-                  <span className="font-medium">
+                  <span className="font-medium text-right">
                     {movie.name}
                   </span>
-
                 </div>
 
-                <div className="flex justify-between">
-
+                <div className="flex justify-between gap-4">
                   <span className="text-gray-500">
                     Theatre
                   </span>
 
-                  <span className="font-medium">
+                  <span className="font-medium text-right">
                     {theatre.name}
                   </span>
-
                 </div>
 
-                <div className="flex justify-between">
-
+                <div className="flex justify-between gap-4">
                   <span className="text-gray-500">
                     Date
                   </span>
@@ -706,11 +698,9 @@ const BookingPage = () => {
                   <span className="font-medium">
                     {show.date}
                   </span>
-
                 </div>
 
-                <div className="flex justify-between">
-
+                <div className="flex justify-between gap-4">
                   <span className="text-gray-500">
                     Show Time
                   </span>
@@ -718,11 +708,9 @@ const BookingPage = () => {
                   <span className="font-medium">
                     {show.showTime}
                   </span>
-
                 </div>
 
-                <div className="flex justify-between">
-
+                <div className="flex justify-between gap-4">
                   <span className="text-gray-500">
                     Seats
                   </span>
@@ -730,11 +718,9 @@ const BookingPage = () => {
                   <span className="font-medium">
                     {selectedSeats.length}
                   </span>
-
                 </div>
 
-                <div className="flex justify-between">
-
+                <div className="flex justify-between gap-4">
                   <span className="text-gray-500">
                     Ticket Price
                   </span>
@@ -742,10 +728,11 @@ const BookingPage = () => {
                   <span className="font-medium">
                     ₹{show.ticketPrice}
                   </span>
-
                 </div>
 
               </div>
+
+              {/* Total */}
 
               <div className="border-t mt-5 pt-5 flex justify-between items-center">
 
@@ -761,9 +748,10 @@ const BookingPage = () => {
 
             </div>
 
-            {/* Confirm */}
+            {/* Confirm Booking */}
 
             <button
+              type="button"
               onClick={handleBooking}
               disabled={bookingLoading}
               className="w-full bg-slate-900 text-white py-4 rounded-xl mt-6 font-semibold text-lg hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"

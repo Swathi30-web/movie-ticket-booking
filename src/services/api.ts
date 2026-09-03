@@ -1,10 +1,11 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://movie-ticket-booking-api.onrender.com",
+  baseURL: "http://localhost:3000",
 });
 
-export const getMovies = () => api.get("/movies");
+export const getMovies = () =>
+  api.get("/movies");
 
 export const getMovie = (id: string) =>
   api.get(`/movies/${id}`);
@@ -12,7 +13,10 @@ export const getMovie = (id: string) =>
 export const addMovie = (movie: unknown) =>
   api.post("/movies", movie);
 
-export const updateMovie = (id: string, movie: unknown) =>
+export const updateMovie = (
+  id: string,
+  movie: unknown
+) =>
   api.put(`/movies/${id}`, movie);
 
 export const deleteMovie = (id: string) =>
@@ -30,7 +34,10 @@ export const getShow = (id: string) =>
 export const addShow = (show: unknown) =>
   api.post("/shows", show);
 
-export const updateShow = (id: string, show: unknown) =>
+export const updateShow = (
+  id: string,
+  show: unknown
+) =>
   api.put(`/shows/${id}`, show);
 
 export const deleteShow = (id: string) =>
@@ -42,11 +49,18 @@ export const getBookings = () =>
 export const getBooking = (id: string) =>
   api.get(`/bookings/${id}`);
 
-export const addBooking = (booking: unknown) =>
+export const addBooking = (
+  booking: unknown
+) =>
   api.post("/bookings", booking);
 
-export const updateBooking = (id: string, booking: unknown) =>
+export const updateBooking = (
+  id: string,
+  booking: unknown
+) =>
   api.put(`/bookings/${id}`, booking);
 
-export const deleteBooking = (id: string) =>
+export const deleteBooking = (
+  id: string
+) =>
   api.delete(`/bookings/${id}`);
