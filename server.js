@@ -1,24 +1,16 @@
-const express = require("express");
-const cors = require("cors");
+const jsonServer = require("json-server");
 
-const app = express();
+const server = jsonServer.create();
+const router = jsonServer.router("db.json");
+const middlewares = jsonServer.defaults();
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+server.use(middlewares);
+server.use(jsonServer.bodyParser);
 
-// Test route
-app.get("/", (req, res) => {
-  res.json({
-    message: "Movie Ticket Booking API is running",
-  });
-});
+server.use(router);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(
-    `Server running at http://localhost:${PORT}`
-  );
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`JSON Server running on port ${PORT}`);
 });

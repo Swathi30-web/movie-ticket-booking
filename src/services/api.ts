@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: "https://movie-ticket-booking-api.onrender.com",
 });
 
 export const getMovies = () => api.get("/movies");
