@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://YOUR-RENDER-URL.onrender.com",
+  baseURL: " https://movie-ticket-booking-4-e0wg.onrender.com",
 });
 
 // =========================
