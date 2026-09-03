@@ -1,8 +1,12 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: "https://YOUR-RENDER-URL.onrender.com",
 });
+
+// =========================
+// MOVIES
+// =========================
 
 export const getMovies = () =>
   api.get("/movies");
@@ -22,8 +26,16 @@ export const updateMovie = (
 export const deleteMovie = (id: string) =>
   api.delete(`/movies/${id}`);
 
+// =========================
+// THEATRES
+// =========================
+
 export const getTheatres = () =>
   api.get("/theatres");
+
+// =========================
+// SHOWS
+// =========================
 
 export const getShows = () =>
   api.get("/shows");
@@ -42,6 +54,10 @@ export const updateShow = (
 
 export const deleteShow = (id: string) =>
   api.delete(`/shows/${id}`);
+
+// =========================
+// BOOKINGS
+// =========================
 
 export const getBookings = () =>
   api.get("/bookings");
